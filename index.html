@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Christian Weekly Study Studio - 4D Sticky Notes Edition</title>
+
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#020617">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        handwriting: ['Caveat', 'cursive']
+                    },
+                    boxShadow: {
+                        'neon-glow': '0 0 30px rgba(56, 189, 248, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.2)',
+                        '3d-button': '0 8px 0 0 rgba(0, 0, 0, 0.8), 0 15px 35px rgba(56,189,248,0.5)',
+                        'sticky-4d': '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.25), inset 0 -4px 10px rgba(0,0,0,0.2)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: radial-gradient(circle at top right, #090d16, #020617 50%, #000000);
+            background-attachment: fixed;
+            color: #f8fafc;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+        .slot-card {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .slot-card:hover {
+            transform: translateY(-6px) scale(1.03);
+            filter: brightness(1.2);
+            box-shadow: 0 12px 30px rgba(56, 189, 248, 0.5);
+        }
+        .highlighted {
+            outline: 3px solid #38bdf8 !important;
+            box-shadow: 0 0 45px rgba(56, 189, 248, 0.9), inset 0 0 20px rgba(255, 255, 255, 0.6) !important;
+        }
+
+        .sticky-note-4d {
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border-radius: 4px 4px 16px 16px;
+            transform: rotate(-1deg);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 25px rgba(56, 189, 248, 0.25), inset 0 -8px 15px rgba(0,0,0,0.15);
+        }
+        .sticky-note-4d:nth-child(even) {
+            transform: rotate(1.5deg);
+        }
+        .sticky-note-4d:hover {
+            transform: translateY(-8px) scale(1.03) rotate(0deg);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 35px rgba(56, 189, 248, 0.5), inset 0 -8px 15px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        .sticky-tape {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(2px);
+            border: 1px dashed rgba(255, 255, 255, 0.4);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 5;
+            pointer-events: none;
+        }
+        .note-cyan {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7, #0369a1);
+            color: #ffffff;
+            border-top: 4px solid #38bdf8;
+        }
+        .note-purple {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed, #6d28d9);
+            color: #ffffff;
+            border-top: 4px solid #c084fc;
+        }
+        .note-emerald {
+            background: linear-gradient(135deg, #10b981, #059669, #047857);
+            color: #ffffff;
+            border-top: 4px solid #34d399;
+        }
+        .note-amber {
+            background: linear-gradient(135deg, #f59e0b, #d97706, #b45309);
+            color: #ffffff;
+            border-top: 4px solid #fbbf24;
+        }
+
+        .bg-pray { background: linear-gradient(135deg, #059669, #047857, #065f46); color: #fff; border-bottom: 5px solid #10b981; }
+        .bg-history { background: linear-gradient(135deg, #0284c7, #0369a1, #075985); color: #fff; border-bottom: 5px solid #38bdf8; }
+        .bg-arabic { background: linear-gradient(135deg, #d97706, #b45309, #92400e); color: #fff; border-bottom: 5px solid #f59e0b; }
+        .bg-english { background: linear-gradient(135deg, #7c3aed, #6d28d9, #5b21b6); color: #fff; border-bottom: 5px solid #a855f7; }
+        .bg-programing { background: linear-gradient(135deg, #2563eb, #1d4ed8, #1e40af); color: #fff; border-bottom: 5px solid #60a5fa; }
+        .bg-break { background: linear-gradient(135deg, #334155, #1e293b, #0f172a); color: #cbd5e1; border-bottom: 5px solid #64748b; }
+        .bg-church { background: linear-gradient(135deg, #dc2626, #b91c1c, #991b1b); color: #fff; border-bottom: 5px solid #f87171; }
+        .bg-hymns { background: linear-gradient(135deg, #9333ea, #7e22ce, #6b21a8); color: #fff; border-bottom: 5px solid #c084fc; }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.7); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #38bdf8, #8b5cf6); border-radius: 4px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 sm:p-6 lg:p-8 space-y-6">
+
+    <div id="toastNotification" class="fixed top-6 right-6 z-50 hidden glass-panel border border-sky-400/60 p-4 rounded-2xl shadow-2xl max-w-sm flex items-start gap-3 animate-bounce">
+        <div class="text-sky-400 text-2xl"><i class="fa-solid fa-bolt"></i></div>
+        <div class="flex-1">
+            <h4 id="toastTitle" class="text-sm font-bold text-white">Power Reminder</h4>
+            <p id="toastBody" class="text-xs text-slate-300 mt-0.5">Session starting soon!</p>
+        </div>
+        <button onclick="dismissToast()" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <header class="glass-panel p-5 sm:p-6 rounded-3xl shadow-neon-glow flex flex-col lg:flex-row items-center justify-between gap-5 border-t-2 border-sky-400/60">
+        <div class="flex items-center gap-4">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-400 via-blue-600 to-indigo-600 flex items-center justify-center shadow-lg text-3xl font-black text-white ring-4 ring-sky-400/30 animate-pulse">
+                🛡️⚡
+            </div>
+            <div>
+                <h1 class="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-300 to-indigo-400 tracking-wide flex items-center gap-2.5">
+                    Christian Study Studio
+                </h1>
+                <p class="text-xs text-slate-300 font-medium mt-1">Epic Weekly Schedule, 4D Realistic Sticky Notes & Prayer Hub</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 bg-slate-900/90 p-2 rounded-2xl border border-slate-700/80 shadow-inner">
+            <button onclick="switchTab('schedule')" id="navSchedule" class="px-5 py-3 rounded-xl text-xs font-black transition flex items-center gap-2.5 bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-lg">
+                <i class="fa-solid fa-calendar-days text-sm"></i> Schedule Hub
+            </button>
+            <button onclick="switchTab('notes')" id="navNotes" class="px-5 py-3 rounded-xl text-xs font-black transition flex items-center gap-2.5 text-slate-300 hover:text-white hover:bg-slate-800">
+                <i class="fa-solid fa-note-sticky text-sm"></i> 4D Sticky Notes
+            </button>
+            <button onclick="switchTab('tasks')" id="navTasks" class="px-5 py-3 rounded-xl text-xs font-black transition flex items-center gap-2.5 text-slate-300 hover:text-white hover:bg-slate-800">
+                <i class="fa-solid fa-list-check text-sm"></i> Tasks & Prayers
+            </button>
+        </div>
+
+        <div class="flex items-center gap-3 flex-wrap justify-center">
+            <button id="installAppBtn" onclick="promptInstallApp()" class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-4 py-3 rounded-xl text-xs font-black shadow-3d-button transition hover:opacity-90 flex items-center gap-2 animate-pulse">
+                <i class="fa-solid fa-download"></i> Install on Phone
+            </button>
+            <button id="notifyBtn" onclick="toggleNotifications()" class="bg-sky-500/20 border border-sky-400/40 px-4 py-3 rounded-xl text-xs font-bold text-sky-300 transition shadow-3d-button flex items-center gap-2 hover:bg-sky-500/30">
+                <i id="notifyIcon" class="fa-solid fa-bell-slash text-sky-400"></i>
+                <span id="notifyBtnText">Reminders</span>
+            </button>
+            <button onclick="toggleAudioSetting()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-4 py-3 rounded-xl text-xs font-bold text-slate-200 transition shadow-3d-button flex items-center gap-2" title="Toggle Sound">
+                <i id="soundIcon" class="fa-solid fa-volume-high text-sky-400"></i>
+                <span>Sound</span>
+            </button>
+            <button onclick="openInstallGuideModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-3 rounded-xl text-xs font-black shadow-3d-button transition flex items-center gap-2">
+                <i class="fa-solid fa-mobile-screen-button text-emerald-400"></i> Guide
+            </button>
+            <button onclick="triggerSuperCelebration()" class="bg-gradient-to-r from-yellow-400 via-sky-500 to-indigo-600 text-white px-5 py-3 rounded-xl text-xs font-black shadow-3d-button transition hover:opacity-90 flex items-center gap-2">
+                <i class="fa-solid fa-bolt"></i> Power Up!
+            </button>
+        </div>
+    </header>
+
+    <div class="glass-panel p-4 sm:p-5 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4 border-l-4 border-sky-400 shadow-2xl">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-blue-600 text-white flex items-center justify-center font-bold text-xl shrink-0 shadow-lg">⚡</div>
+            <div>
+                <div class="text-xs font-extrabold text-sky-400 uppercase tracking-widest">Daily Hero Vibe & Power Verse</div>
+                <p id="jokeText" class="text-xs sm:text-sm text-slate-100 font-medium mt-1">"Be strong and courageous; do not be frightened or dismayed, for the Lord your God is with you wherever you go! (Joshua 1:9)"</p>
+            </div>
+        </div>
+        <button onclick="rotateJoke()" class="bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-500/30 px-4 py-3 rounded-xl text-xs font-bold transition whitespace-nowrap shadow-sm flex items-center gap-2">
+            <i class="fa-solid fa-rotate"></i> Next Verse
+        </button>
+    </div>
+
+    <div id="pageSchedule" class="space-y-6">
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="glass-panel p-5 rounded-3xl flex items-center gap-4 shadow-neon-glow border-t border-sky-400/40">
+                <div class="w-14 h-14 bg-sky-500/20 rounded-2xl flex items-center justify-center text-sky-400 text-2xl font-bold"><i class="fa-solid fa-stopwatch"></i></div>
+                <div>
+                    <div class="text-[11px] text-sky-300 font-extrabold uppercase tracking-wider">Studied Hours</div>
+                    <div class="text-2xl font-black text-white" id="statHours">0.0 Hrs</div>
+                    <div class="text-[10px] text-slate-400" id="statExtra">Includes 0m extra</div>
+                </div>
+            </div>
+            <div class="glass-panel p-5 rounded-3xl flex items-center gap-4 shadow-neon-glow border-t border-blue-500/40">
+                <div class="w-14 h-14 bg-blue-500/20 rounded-2xl flex items-center justify-center text-blue-400 text-2xl font-bold"><i class="fa-solid fa-shield-cat"></i></div>
+                <div>
+                    <div class="text-[11px] text-blue-300 font-extrabold uppercase tracking-wider">Completed Sessions</div>
+                    <div class="text-2xl font-black text-white" id="statHighlights">0 Sessions</div>
+                    <div class="text-[10px] text-slate-400">Marked complete</div>
+                </div>
+            </div>
+            <div class="glass-panel p-5 rounded-3xl flex items-center gap-4 shadow-neon-glow border-t border-indigo-500/40">
+                <div class="w-14 h-14 bg-indigo-500/20 rounded-2xl flex items-center justify-center text-indigo-400 text-2xl font-bold"><i class="fa-solid fa-chart-line"></i></div>
+                <div>
+                    <div class="text-[11px] text-indigo-300 font-extrabold uppercase tracking-wider">Progress Rate</div>
+                    <div class="text-2xl font-black text-white" id="statProgress">0%</div>
+                    <div class="text-[10px] text-slate-400" id="statRatio">0 / 0 slots</div>
+                </div>
+            </div>
+            <div class="glass-panel p-5 rounded-3xl flex flex-col justify-center shadow-neon-glow border-t border-yellow-400/40">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[11px] font-black text-yellow-300 uppercase tracking-wider">Hero Goal Rank</span>
+                    <span class="text-xs font-black text-sky-400" id="progressBarLabel">0%</span>
+                </div>
+                <div class="w-full bg-slate-900 h-4 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                    <div id="progressBar" class="bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-600 h-full rounded-full transition-all duration-500 shadow-lg" style="width: 0%"></div>
+                </div>
+            </div>
+        </section>
+
+        <div class="glass-panel rounded-3xl p-6 overflow-x-auto shadow-neon-glow border border-slate-700/80">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-800">
+                <h2 class="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-indigo-400 flex items-center gap-2.5">
+                    <i class="fa-solid fa-calendar-days text-sky-400"></i> Weekly Cosmic Matrix & Schedule
+                </h2>
+                <div class="flex gap-3">
+                    <button onclick="resetSchedule()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-3 rounded-xl text-xs font-bold transition border border-slate-700 flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-rotate-left"></i> Reset Defaults
+                    </button>
+                    <button onclick="openCustomSlotModal()" class="bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:opacity-90 text-white px-5 py-3 rounded-xl text-xs font-black shadow-3d-button flex items-center gap-2 transition">
+                        <i class="fa-solid fa-plus"></i> Add Time Slot
+                    </button>
+                </div>
+            </div>
+            <div class="min-w-[980px]">
+                <div class="grid grid-cols-8 gap-3 mb-4 text-center font-black text-xs uppercase tracking-widest text-slate-200">
+                    <div class="p-3.5 bg-slate-800/90 rounded-2xl border border-slate-700 shadow-inner">Time Slot</div>
+                    <div class="p-3.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white rounded-2xl shadow-lg">SAT</div>
+                    <div class="p-3.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white rounded-2xl shadow-lg">SUN</div>
+                    <div class="p-3.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white rounded-2xl shadow-lg">MON</div>
+                    <div class="p-3.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white rounded-2xl shadow-lg">TUE</div>
+                    <div class="p-3.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white rounded-2xl shadow-lg">WED</div>
+                    <div class="p-3.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white rounded-2xl shadow-lg">THU</div>
+                    <div class="p-3.5 bg-gradient-to-r from-sky-600 to-blue-600 text-white rounded-2xl shadow-lg">FRI</div>
+                </div>
+                <div id="scheduleGrid" class="space-y-3.5"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="pageNotes" class="space-y-6 hidden">
+        <div class="glass-panel p-6 sm:p-8 rounded-3xl shadow-neon-glow border-t border-sky-400/40">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-4 border-b border-slate-800">
+                <div>
+                    <h2 class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-300 flex items-center gap-2.5">
+                        <i class="fa-solid fa-note-sticky text-sky-400"></i> 4D Realistic Sticky Notes Board
+                    </h2>
+                    <p class="text-xs text-slate-300 mt-1">Realistic tactile sticky notes with tape effects, rich glowing borders, and handwritten fonts.</p>
+                </div>
+                <button onclick="openNoteModal()" class="bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:opacity-90 text-white px-6 py-3.5 rounded-xl text-xs font-black shadow-3d-button transition transform active:scale-95 flex items-center gap-2">
+                    <i class="fa-solid fa-plus text-sm"></i> New 4D Sticky Note
+                </button>
+            </div>
+            <div id="notesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-4 min-h-[420px]"></div>
+        </div>
+    </div>
+
+    <div id="pageTasks" class="space-y-6 hidden">
+        <div class="glass-panel p-6 sm:p-8 rounded-3xl shadow-neon-glow border-t border-indigo-500/40">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-slate-800">
+                <div>
+                    <h2 class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-sky-400 flex items-center gap-2.5">
+                        <i class="fa-solid fa-list-check text-indigo-400"></i> Heroic Tasks & Prayers Hub
+                    </h2>
+                    <p class="text-xs text-slate-300 mt-1">Conquer your daily assignments, Agpeya prayers, and personal study quests.</p>
+                </div>
+                <span class="text-xs font-bold text-slate-100 bg-slate-800 px-4 py-3 rounded-xl border border-slate-700 shadow-sm" id="taskCounterPage">0 completed</span>
+            </div>
+            <div class="flex gap-3 mb-6 max-w-2xl">
+                <input type="text" id="taskInput" placeholder="Add study quest or prayer item..." class="flex-1 bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3.5 text-xs font-bold text-white focus:outline-none focus:border-sky-400 transition shadow-inner">
+                <button onclick="addTask()" class="bg-gradient-to-r from-sky-600 to-indigo-600 hover:opacity-90 text-white px-6 py-3.5 rounded-2xl text-xs font-black shadow-3d-button transition">Add Quest</button>
+            </div>
+            <div id="tasksContainer" class="space-y-3.5 max-w-3xl"></div>
+        </div>
+    </div>
+
+    <div id="subjectModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md p-6 rounded-3xl shadow-2xl border border-slate-700 relative">
+            <h3 class="text-lg font-black text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-shield text-sky-400"></i> Select Hero Subject / Activity
+            </h3>
+            <div id="subjectOptionsList" class="grid grid-cols-2 gap-2.5 mb-4 max-h-[300px] overflow-y-auto p-1"></div>
+            <div class="mb-4 pt-3 border-t border-slate-700/80">
+                <label class="block text-xs font-bold text-slate-300 mb-1.5">Or enter custom quest:</label>
+                <div class="flex gap-2">
+                    <input type="text" id="customSubjectInput" placeholder="e.g. Robotics 🤖" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-3 text-xs font-bold text-white focus:outline-none focus:border-sky-400">
+                    <button onclick="saveCustomSubject()" class="bg-sky-500 hover:bg-sky-400 text-white px-5 py-3 rounded-xl text-xs font-black shadow-3d-button">Set</button>
+                </div>
+            </div>
+            <div class="flex justify-end">
+                <button onclick="closeSubjectModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2.5 rounded-xl text-xs font-bold transition">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="noteModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-lg p-6 rounded-3xl shadow-2xl border border-sky-500/40 relative">
+            <h3 class="text-lg font-black text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-pen-nib text-sky-400"></i> Create 4D Realistic Sticky Note
+            </h3>
+            <div class="space-y-4 mb-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Note Title:</label>
+                    <input type="text" id="noteTitleInput" placeholder="e.g. Scripture Analysis & Core Themes" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs font-bold text-white focus:outline-none focus:border-sky-400">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1.5">Sticky Color Theme:</label>
+                        <select id="noteColorInput" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-3 text-xs font-bold text-white focus:outline-none focus:border-sky-400">
+                            <option value="note-cyan">🔵 Electric Cyan</option>
+                            <option value="note-purple">🟣 Plasma Purple</option>
+                            <option value="note-emerald">🟢 Matrix Emerald</option>
+                            <option value="note-amber">🟠 Solar Amber</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1.5">Category Tag:</label>
+                        <select id="noteCategoryInput" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-3 text-xs font-bold text-white focus:outline-none focus:border-sky-400">
+                            <option value="Scripture 📖">Scripture 📖</option>
+                            <option value="Programming 💻">Programming 💻</option>
+                            <option value="Strategy ⚡">Strategy ⚡</option>
+                            <option value="Goals 🎯">Goals 🎯</option>
+                            <option value="Research 🔬">Research 🔬</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Note Content / Action Items:</label>
+                    <textarea id="noteContentInput" rows="4" placeholder="Enter clear, organized bullet points or insights..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-xs font-medium text-white focus:outline-none focus:border-sky-400 resize-none font-mono"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeNoteModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-3 rounded-xl text-xs font-bold transition">Cancel</button>
+                <button onclick="saveProfessionalNote()" class="bg-gradient-to-r from-sky-500 to-blue-600 hover:opacity-90 text-white px-6 py-3 rounded-xl text-xs font-black shadow-3d-button transition">Save Sticky Note</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="slotModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md p-6 rounded-3xl shadow-2xl border border-slate-700 relative">
+            <h3 class="text-lg font-black text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-clock text-sky-400"></i> Add New Time Slot
+            </h3>
+            <div class="space-y-4 mb-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Time Range (e.g., 12:30 - 1:00 am):</label>
+                    <input type="text" id="newSlotTimeInput" placeholder="12:30 To 1:00 am" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-3 text-xs font-bold text-white focus:outline-none focus:border-sky-400">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Duration in Minutes:</label>
+                    <input type="number" id="newSlotDurationInput" value="30" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-3 text-xs font-bold text-white focus:outline-none focus:border-sky-400">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeSlotModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2.5 rounded-xl text-xs font-bold transition">Cancel</button>
+                <button onclick="saveNewSlot()" class="bg-sky-600 hover:bg-sky-500 text-white px-6 py-2.5 rounded-xl text-xs font-black shadow-3d-button transition">Add Slot</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="installGuideModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-lg p-6 sm:p-8 rounded-3xl shadow-2xl border border-emerald-500/50 relative">
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
+                <h3 class="text-lg font-black text-white flex items-center gap-2.5">
+                    <i class="fa-solid fa-mobile-screen-button text-emerald-400 text-xl"></i> How to Install on Your Phone
+                </h3>
+                <button onclick="closeInstallGuideModal()" class="text-slate-400 hover:text-white text-base"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-5 text-xs sm:text-sm text-slate-200">
+                <div class="bg-slate-900/90 border border-amber-500/30 p-4 rounded-2xl shadow-inner">
+                    <h4 class="font-extrabold text-amber-400 text-sm mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-base"></i> Why does it sometimes say "Unavailable"?
+                    </h4>
+                    <p class="text-slate-300 text-xs leading-relaxed">
+                        Some preview environments or browsers restrict direct installation prompts due to security policies or iframe sandboxing. But you can <strong>always</strong> install it manually in 2 seconds using your browser's main menu!
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/90 border border-emerald-500/30 p-4 rounded-2xl shadow-inner">
+                    <h4 class="font-extrabold text-emerald-400 text-sm mb-2 flex items-center gap-2">
+                        <i class="fa-brands fa-android text-base"></i> Android (Chrome / Samsung Internet)
+                    </h4>
+                    <ol class="list-decimal list-inside space-y-1.5 text-slate-300 font-medium text-xs">
+                        <li>Tap the <strong class="text-white">three dots menu</strong> (<i class="fa-solid fa-ellipsis-vertical inline text-emerald-300"></i>) in the top-right corner of your browser.</li>
+                        <li>Look for <strong class="text-white">"Install app"</strong> or <strong class="text-white">"Add to Home screen"</strong>.</li>
+                        <li>Tap <strong class="text-emerald-300">Add</strong> or <strong class="text-emerald-300">Install</strong>. It will appear right on your home screen!</li>
+                    </ol>
+                </div>
+
+                <div class="bg-slate-900/90 border border-sky-500/30 p-4 rounded-2xl shadow-inner">
+                    <h4 class="font-extrabold text-sky-400 text-sm mb-2 flex items-center gap-2">
+                        <i class="fa-brands fa-apple text-base"></i> iPhone / iPad (Safari)
+                    </h4>
+                    <ol class="list-decimal list-inside space-y-1.5 text-slate-300 font-medium text-xs">
+                        <li>Tap the <strong class="text-white">Share</strong> button (<i class="fa-solid fa-arrow-up-from-bracket inline text-sky-300"></i>) at the bottom or top of Safari.</li>
+                        <li>Scroll down the menu and tap <strong class="text-white">"Add to Home Screen"</strong> (<i class="fa-solid fa-square-plus inline text-emerald-400"></i>).</li>
+                        <li>Tap <strong class="text-sky-300">Add</strong> in the top right.</li>
+                    </ol>
+                </div>
+            </div>
+            <div class="flex justify-end mt-6 pt-4 border-t border-slate-800">
+                <button onclick="closeInstallGuideModal()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-90 text-white px-6 py-3 rounded-xl text-xs font-black shadow-3d-button transition">Got It, Let's Study!</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
+            });
+        }
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const installBtn = document.getElementById('installAppBtn');
+            if (installBtn) installBtn.classList.remove('hidden');
+        });
+
+        async function promptInstallApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('installAppBtn').classList.add('hidden');
+                }
+                deferredPrompt = null;
+            } else {
+                openInstallGuideModal();
+            }
+        }
+
+        const SUBJECT_OPTIONS = [
+            { name: 'Pray 🙏', class: 'bg-pray' },
+            { name: 'History 🌎', class: 'bg-history' },
+            { name: 'Arabic 🧕', class: 'bg-arabic' },
+            { name: 'English 📚', class: 'bg-english' },
+            { name: 'Programing 💻', class: 'bg-programing' },
+            { name: 'Break ⚡', class: 'bg-break' },
+            { name: 'مدارس احد ⛪', class: 'bg-church' },
+            { name: 'الحان 🎵', class: 'bg-hymns' }
+        ];
+
+        const DAYS = ['SAT', 'SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI'];
+        const DAY_INDEX_MAP = { 6: 0, 0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6 };
+
+        const DEFAULT_TIME_SLOTS = [
+            { time: "9:00 To 9:30 am", durationMins: 30 },
+            { time: "9:30 To 11:00 am", durationMins: 90 },
+            { time: "11:00 To 11:15 am", durationMins: 15 },
+            { time: "11:15 am To 12:45 pm", durationMins: 90 },
+            { time: "12:00 To 12:30 pm", durationMins: 30 },
+            { time: "12:30 To 2:00 pm", durationMins: 90 },
+            { time: "2:00 To 2:15 pm", durationMins: 15 },
+            { time: "2:15 To 3:45 am", durationMins: 90 },
+            { time: "3:45 To 4:00 pm", durationMins: 15 },
+            { time: "4:00 To 5:30 pm", durationMins: 90 },
+            { time: "5:30 To 5:45 pm", durationMins: 15 },
+            { time: "5:45 To 7:15 pm", durationMins: 90 },
+            { time: "7:15 To 7:30 pm", durationMins: 15 },
+            { time: "7:30 To 9:00 pm", durationMins: 90 },
+            { time: "9:00 To 9:15 pm", durationMins: 15 },
+            { time: "9:15 To 10:45 pm", durationMins: 90 },
+            { time: "10:45 To 11:00 pm", durationMins: 15 },
+            { time: "11:00 TO 12:30 am", durationMins: 90 }
+        ];
+
+        const DEFAULT_SCHEDULE_MATRIX = [
+            ["Pray 🙏", "Pray 🙏", "Pray 🙏", "Pray 🙏", "Pray 🙏", "Pray 🙏", "Pray 🙏"],
+            ["History 🌎", "Arabic 🧕", "English 📚", "Arabic 🧕", "History 🌎", "Arabic 🧕", "Pray 🙏"],
+            ["Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "مدارس احد ⛪"],
+            ["Arabic 🧕", "History 🌎", "Programing 💻", "History 🌎", "Arabic 🧕", "English 📚", "مدارس احد ⛪"],
+            ["Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "مدارس احد ⛪"],
+            ["English 📚", "Programing 💻", "Arabic 🧕", "English 📚", "Programing 💻", "History 🌎", "الحان 🎵"],
+            ["Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "الحان 🎵"],
+            ["Programing 💻", "English 📚", "English 📚", "Arabic 🧕", "English 📚", "Programing 💻", ""],
+            ["Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", ""],
+            ["History 🌎", "Arabic 🧕", "Arabic 🧕", "History 🌎", "History 🌎", "Arabic 🧕", ""],
+            ["Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", ""],
+            ["Arabic 🧕", "History 🌎", "Programing 💻", "Programing 💻", "Arabic 🧕", "English 📚", ""],
+            ["Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", ""],
+            ["English 📚", "Programing 💻", "History 🌎", "Arabic 🧕", "Programing 💻", "Programing 💻", "History 🌎"],
+            ["Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡"],
+            ["History 🌎", "Arabic 🧕", "Programing 💻", "English 📚", "History 🌎", "History 🌎", "Arabic 🧕"],
+            ["Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡", "Break ⚡"],
+            ["Arabic 🧕", "English 📚", "History 🌎", "English 📚", "English 📚", "History 🌎", "English 📚"]
+        ];
+
+        const JOKES = [
+            "Be strong and courageous; do not be frightened or dismayed, for the Lord your God is with you wherever you go! (Joshua 1:9)",
+            "Why did the coder study late into the night? Because faith compiles with zero bugs and maximum grace!",
+            "Champions never quit: every difficult study session builds unbreakable mental strength and wisdom.",
+            "Spiritual growth tip: Stay plugged into prayer and your power level will never drop!",
+            "Arabic grammar and coding have one thing in common: every single detail matters for ultimate success!"
+        ];
+
+        let timeSlots = JSON.parse(localStorage.getItem('study_slots_hero_v2')) || DEFAULT_TIME_SLOTS;
+        let scheduleData = JSON.parse(localStorage.getItem('study_matrix_hero_v2')) || DEFAULT_SCHEDULE_MATRIX.map(row => 
+            row.map(subj => ({ subject: subj, highlighted: false, extraMinutes: 0 }))
+        );
+
+        let proNotes = JSON.parse(localStorage.getItem('study_sticky_notes_4d_v1')) || [
+            { id: 1, title: "Spiritual Foundation", color: "note-cyan", category: "Scripture 📖", text: "Joshua 1:9 - Maintain steadfast courage and discipline through daily scripture and prayer.", date: "Sep 29, 2026" },
+            { id: 2, title: "Algorithm Architecture", color: "note-purple", category: "Programming 💻", text: "Focus on clean modular design, asynchronous handling, and robust state persistence.", date: "Sep 29, 2026" },
+            { id: 3, title: "Weekly Academic Goals", color: "note-emerald", category: "Goals 🎯", text: "Complete all history review sessions, Arabic vocabulary drills, and programming labs.", date: "Sep 29, 2026" }
+        ];
+
+        let tasksData = JSON.parse(localStorage.getItem('study_tasks_hero_v2')) || [
+            { id: 1, text: "Morning prayer & Scripture reading", done: true },
+            { id: 2, text: "Review History chapter notes", done: false },
+            { id: 3, text: "Complete Python programming assignment", done: false }
+        ];
+
+        let notificationsEnabled = localStorage.getItem('study_notifications_hero_v2') === 'true';
+        let audioEnabled = localStorage.getItem('study_audio_hero_v2') !== 'false';
+        let activeModalCell = { rIdx: null, cIdx: null };
+        let firedReminders = {};
+
+        function switchTab(tabId) {
+            ['schedule', 'notes', 'tasks'].forEach(t => {
+                const el = document.getElementById(`page${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                const nav = document.getElementById(`nav${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if (el) el.classList.add('hidden');
+                if (nav) {
+                    nav.className = "px-5 py-3 rounded-xl text-xs font-black transition flex items-center gap-2.5 text-slate-300 hover:text-white hover:bg-slate-800";
+                }
+            });
+
+            const activeEl = document.getElementById(`page${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`);
+            const activeNav = document.getElementById(`nav${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`);
+            if (activeEl) activeEl.classList.remove('hidden');
+            if (activeNav) {
+                activeNav.className = "px-5 py-3 rounded-xl text-xs font-black transition flex items-center gap-2.5 bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-lg";
+            }
+
+            if (tabId === 'notes') renderProNotes();
+            if (tabId === 'tasks') renderTasks();
+        }
+
+        function getSubjectClass(name) {
+            if (!name) return 'bg-slate-900/60 border border-slate-800/80 opacity-30';
+            const found = SUBJECT_OPTIONS.find(s => s.name.toLowerCase() === name.toLowerCase());
+            if (found) return found.class;
+            const lower = name.toLowerCase();
+            if (lower.includes('pray')) return 'bg-pray';
+            if (lower.includes('history')) return 'bg-history';
+            if (lower.includes('arabic')) return 'bg-arabic';
+            if (lower.includes('english')) return 'bg-english';
+            if (lower.includes('program')) return 'bg-programing';
+            if (lower.includes('مدارس احد')) return 'bg-church';
+            if (lower.includes('الحان')) return 'bg-hymns';
+            return 'bg-break';
+        }
+
+        function renderSchedule() {
+            const grid = document.getElementById('scheduleGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            timeSlots.forEach((slot, rIdx) => {
+                if (!scheduleData[rIdx]) {
+                    scheduleData[rIdx] = DAYS.map(() => ({ subject: '', highlighted: false, extraMinutes: 0 }));
+                }
+
+                const row = document.createElement('div');
+                row.className = 'grid grid-cols-8 gap-4 items-center';
+
+                const timeCol = document.createElement('div');
+                timeCol.className = 'bg-slate-900 border border-slate-700 p-4 rounded-2xl text-center text-xs font-black text-sky-400 flex items-center justify-between group shadow-sm';
+                timeCol.innerHTML = `
+                    <span class="tracking-tighter">${slot.time}</span>
+                    <button onclick="deleteRow(${rIdx})" class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition p-1" title="Delete Row">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                `;
+                row.appendChild(timeCol);
+
+                DAYS.forEach((_, cIdx) => {
+                    const cell = scheduleData[rIdx][cIdx] || { subject: '', highlighted: false, extraMinutes: 0 };
+                    const colorClass = getSubjectClass(cell.subject);
+                    const highlightClass = cell.highlighted ? 'highlighted' : '';
+
+                    const cellEl = document.createElement('div');
+                    cellEl.className = `slot-card ${colorClass} ${highlightClass} p-4 rounded-2xl flex flex-col justify-between min-h-[120px] cursor-pointer relative shadow-neon-glow`;
+                    cellEl.onclick = () => openSubjectModal(rIdx, cIdx);
+
+                    cellEl.innerHTML = `
+                        <div class="flex justify-between items-start gap-2">
+                            <span class="font-extrabold text-xs tracking-tight line-clamp-2">${cell.subject || 'Empty'}</span>
+                            <button onclick="event.stopPropagation(); toggleHighlight(${rIdx}, ${cIdx})" class="w-10 h-10 rounded-xl bg-black/40 hover:bg-black/70 flex items-center justify-center text-white text-base transition shadow-md" title="Toggle Complete">
+                                ${cell.highlighted ? '<i class="fa-solid fa-check text-sky-300"></i>' : '<i class="fa-regular fa-circle text-white/50"></i>'}
+                            </button>
+                        </div>
+                        <div class="flex justify-between items-end mt-3 pt-2.5 border-t border-white/20">
+                            <span class="text-[10px] font-black opacity-95 bg-black/40 px-2 py-0.5 rounded shadow-sm">${cell.extraMinutes > 0 ? `+${cell.extraMinutes}m` : ''}</span>
+                            <div class="flex gap-2" onclick="event.stopPropagation()">
+                                <button onclick="addExtraMinutes(${rIdx}, ${cIdx}, 15)" class="px-2.5 py-1.5 rounded-lg bg-black/40 hover:bg-black/80 text-[11px] font-black text-sky-200 transition shadow" title="Add 15 mins">+15m</button>
+                                <button onclick="addExtraMinutes(${rIdx}, ${cIdx}, 30)" class="px-2.5 py-1.5 rounded-lg bg-black/40 hover:bg-black/80 text-[11px] font-black text-yellow-300 transition shadow" title="Add 30 mins">+30m</button>
+                            </div>
+                        </div>
+                    `;
+                    row.appendChild(cellEl);
+                });
+                grid.appendChild(row);
+            });
+            updateAnalytics();
+        }
+
+        function openSubjectModal(rIdx, cIdx) {
+            activeModalCell = { rIdx, cIdx };
+            const listEl = document.getElementById('subjectOptionsList');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+
+            SUBJECT_OPTIONS.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = `p-3.5 rounded-2xl text-xs font-bold text-left transition border ${opt.class} hover:scale-[1.03] shadow-md`;
+                btn.innerHTML = `<i class="fa-solid fa-tag mr-2"></i> ${opt.name}`;
+                btn.onclick = () => selectSubject(opt.name);
+                listEl.appendChild(btn);
+            });
+
+            document.getElementById('customSubjectInput').value = '';
+            document.getElementById('subjectModal').classList.remove('hidden');
+        }
+
+        function closeSubjectModal() {
+            document.getElementById('subjectModal').classList.add('hidden');
+        }
+
+        function selectSubject(subjectName) {
+            const { rIdx, cIdx } = activeModalCell;
+            if (rIdx !== null && cIdx !== null) {
+                scheduleData[rIdx][cIdx].subject = subjectName;
+                saveAndRender();
+            }
+            closeSubjectModal();
+        }
+
+        function saveCustomSubject() {
+            const customVal = document.getElementById('customSubjectInput').value.trim();
+            if (customVal) {
+                selectSubject(customVal);
+            }
+        }
+
+        function toggleHighlight(rIdx, cIdx) {
+            const cell = scheduleData[rIdx][cIdx];
+            cell.highlighted = !cell.highlighted;
+            if (cell.highlighted) {
+                confetti({ particleCount: 50, spread: 70, origin: { y: 0.7 } });
+            }
+            saveAndRender();
+        }
+
+        function addExtraMinutes(rIdx, cIdx, mins) {
+            scheduleData[rIdx][cIdx].extraMinutes += mins;
+            confetti({ particleCount: 25, spread: 50, origin: { y: 0.8 } });
+            saveAndRender();
+        }
+
+        function deleteRow(rIdx) {
+            timeSlots.splice(rIdx, 1);
+            scheduleData.splice(rIdx, 1);
+            saveAndRender();
+        }
+
+        function resetSchedule() {
+            if (confirm("Reset schedule to cosmic hero defaults?")) {
+                timeSlots = JSON.parse(JSON.stringify(DEFAULT_TIME_SLOTS));
+                scheduleData = DEFAULT_SCHEDULE_MATRIX.map(row => 
+                    row.map(subj => ({ subject: subj, highlighted: false, extraMinutes: 0 }))
+                );
+                saveAndRender();
+            }
+        }
+
+        function openCustomSlotModal() {
+            document.getElementById('slotModal').classList.remove('hidden');
+        }
+
+        function closeSlotModal() {
+            document.getElementById('slotModal').classList.add('hidden');
+        }
+
+        function saveNewSlot() {
+            const timeStr = document.getElementById('newSlotTimeInput').value.trim();
+            const duration = parseInt(document.getElementById('newSlotDurationInput').value) || 30;
+            if (!timeStr) return;
+
+            timeSlots.push({ time: timeStr, durationMins: duration });
+            scheduleData.push(DAYS.map(() => ({ subject: 'History 🌎', highlighted: false, extraMinutes: 0 })));
+            closeSlotModal();
+            saveAndRender();
+        }
+
+        function updateAnalytics() {
+            let totalMins = 0, extraTotal = 0, completedCount = 0, totalValid = 0;
+            scheduleData.forEach((row, rIdx) => {
+                const slotMins = timeSlots[rIdx] ? timeSlots[rIdx].durationMins : 45;
+                row.forEach(cell => {
+                    if (cell.subject && cell.subject.trim() !== '') {
+                        totalValid++;
+                        if (cell.highlighted) {
+                            completedCount++;
+                            totalMins += slotMins + cell.extraMinutes;
+                            extraTotal += cell.extraMinutes;
+                        }
+                    }
+                });
+            });
+
+            const hours = (totalMins / 60).toFixed(1);
+            const pct = totalValid > 0 ? Math.round((completedCount / totalValid) * 100) : 0;
+
+            document.getElementById('statHours').innerText = `${hours} Hrs`;
+            document.getElementById('statExtra').innerText = `Includes ${extraTotal}m extra time`;
+            document.getElementById('statHighlights').innerText = `${completedCount} Sessions`;
+            document.getElementById('statProgress').innerText = `${pct}%`;
+            document.getElementById('statRatio').innerText = `${completedCount} / ${totalValid} slots`;
+            document.getElementById('progressBarLabel').innerText = `${pct}%`;
+            document.getElementById('progressBar').style.width = `${pct}%`;
+        }
+
+        function renderProNotes() {
+            const container = document.getElementById('notesContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            proNotes.forEach(note => {
+                const card = document.createElement('div');
+                card.className = `sticky-note-4d ${note.color} p-6 pt-8 rounded-2xl flex flex-col justify-between shadow-sticky-4d relative min-h-[240px]`;
+                
+                card.innerHTML = `
+                    <div class="sticky-tape"></div>
+                    <div>
+                        <div class="flex justify-between items-start gap-2 mb-3">
+                            <span class="text-[10px] font-black uppercase tracking-wider bg-black/40 px-3 py-1 rounded-full text-white shadow-sm">${note.category}</span>
+                            <button onclick="deleteProNote(${note.id})" class="text-white/70 hover:text-white transition px-2 py-1 bg-black/30 rounded-lg hover:bg-black/60"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                        </div>
+                        <h4 class="font-extrabold text-base text-white tracking-wide mb-2.5 font-sans">${note.title}</h4>
+                        <p class="text-sm text-slate-100 leading-relaxed font-handwriting whitespace-pre-line mb-6 font-bold tracking-wide">${note.text}</p>
+                    </div>
+                    <div class="flex justify-between items-center pt-3 border-t border-white/20 text-[10px] text-white/80 font-mono">
+                        <span><i class="fa-regular fa-calendar mr-1"></i> ${note.date}</span>
+                        <span class="bg-black/30 px-2 py-0.5 rounded">4D Tactile</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function openNoteModal() {
+            document.getElementById('noteTitleInput').value = '';
+            document.getElementById('noteContentInput').value = '';
+            document.getElementById('noteModal').classList.remove('hidden');
+        }
+
+        function closeNoteModal() {
+            document.getElementById('noteModal').classList.add('hidden');
+        }
+
+        function saveProfessionalNote() {
+            const title = document.getElementById('noteTitleInput').value.trim();
+            const color = document.getElementById('noteColorInput').value;
+            const category = document.getElementById('noteCategoryInput').value;
+            const text = document.getElementById('noteContentInput').value.trim();
+
+            if (!title || !text) {
+                alert("Please provide both a title and content for your 4D sticky note.");
+                return;
+            }
+
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+            const currentDate = new Date().toLocaleDateString('en-US', options);
+
+            proNotes.unshift({
+                id: Date.now(),
+                title,
+                color,
+                category,
+                text,
+                date: currentDate
+            });
+
+            localStorage.setItem('study_sticky_notes_4d_v1', JSON.stringify(proNotes));
+            closeNoteModal();
+            renderProNotes();
+            confetti({ particleCount: 35, spread: 65, origin: { y: 0.7 } });
+        }
+
+        function deleteProNote(id) {
+            if (confirm("Are you sure you want to delete this 4D sticky note?")) {
+                proNotes = proNotes.filter(n => n.id !== id);
+                localStorage.setItem('study_sticky_notes_4d_v1', JSON.stringify(proNotes));
+                renderProNotes();
+            }
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('tasksContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            let done = 0;
+
+            tasksData.forEach(task => {
+                if (task.done) done++;
+                const card = document.createElement('div');
+                card.className = `p-5 rounded-2xl border transition-all duration-200 cursor-pointer flex items-center justify-between gap-4 shadow-sm ${task.done ? 'bg-slate-900/90 border-sky-400/50' : 'bg-slate-800 border-slate-700 hover:border-sky-500/50'}`;
+                card.onclick = () => toggleTask(task.id);
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="w-9 h-9 rounded-xl border flex items-center justify-center shadow-md ${task.done ? 'bg-gradient-to-r from-sky-500 to-indigo-600 border-sky-400 text-white font-bold' : 'border-slate-600 bg-slate-900'}">
+                            ${task.done ? '<i class="fa-solid fa-check text-sm"></i>' : ''}
+                        </div>
+                        <span class="text-xs sm:text-sm font-bold ${task.done ? 'line-through text-slate-400' : 'text-slate-100'}">${task.text}</span>
+                    </div>
+                    <button onclick="event.stopPropagation(); deleteTask(${task.id})" class="text-slate-500 hover:text-red-400 text-xs px-3.5 py-2"><i class="fa-solid fa-xmark text-base"></i></button>
+                `;
+                container.appendChild(card);
+            });
+            const counterEl = document.getElementById('taskCounterPage');
+            if (counterEl) counterEl.innerText = `${done} / ${tasksData.length} completed`;
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            if (!input || !input.value.trim()) return;
+            tasksData.push({ id: Date.now(), text: input.value.trim(), done: false });
+            input.value = '';
+            localStorage.setItem('study_tasks_hero_v2', JSON.stringify(tasksData));
+            renderTasks();
+        }
+
+        function toggleTask(id) {
+            const t = tasksData.find(x => x.id === id);
+            if (t) {
+                t.done = !t.done;
+                if (t.done) confetti({ particleCount: 40, spread: 70, origin: { y: 0.8 } });
+                localStorage.setItem('study_tasks_hero_v2', JSON.stringify(tasksData));
+                renderTasks();
+            }
+        }
+
+        function deleteTask(id) {
+            tasksData = tasksData.filter(x => x.id !== id);
+            localStorage.setItem('study_tasks_hero_v2', JSON.stringify(tasksData));
+            renderTasks();
+        }
+
+        function rotateJoke() {
+            const el = document.getElementById('jokeText');
+            if (el) {
+                el.textContent = `"${JOKES[Math.floor(Math.random() * JOKES.length)]}"`;
+            }
+        }
+
+        function triggerSuperCelebration() {
+            confetti({ particleCount: 120, spread: 110, origin: { y: 0.6 } });
+            playChime();
+        }
+
+        function playChime() {
+            if (!audioEnabled) return;
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                const playTone = (freq, time, dur) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + time);
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime + time);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + time + dur);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + time);
+                    osc.stop(ctx.currentTime + time + dur);
+                };
+                playTone(523.25, 0, 0.5);
+                playTone(659.25, 0.15, 0.5);
+                playTone(783.99, 0.3, 0.5);
+                playTone(1046.50, 0.45, 0.8);
+            } catch (e) {}
+        }
+
+        function checkReminders() {
+            const now = new Date();
+            const jsDay = now.getDay();
+            const currentDayIdx = DAY_INDEX_MAP[jsDay];
+            if (currentDayIdx === undefined) return;
+
+            timeSlots.forEach((slot, rIdx) => {
+                const match = slot.time.match(/(\d{1,2}):(\d{2})\s*(am|pm)/i);
+                if (!match) return;
+                let h = parseInt(match[1]), m = parseInt(match[2]);
+                const p = match[3].toLowerCase();
+                if (p === 'pm' && h < 12) h += 12;
+                if (p === 'am' && h === 12) h = 0;
+
+                const startTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
+                const reminderTime = new Date(startTime.getTime() - 5 * 60 * 1000);
+                const diffMins = (now.getTime() - reminderTime.getTime()) / 60000;
+
+                if (diffMins >= 0 && diffMins < 1) {
+                    const key = `${now.toDateString()}-${rIdx}-${currentDayIdx}`;
+                    if (!firedReminders[key]) {
+                        firedReminders[key] = true;
+                        const subj = (scheduleData[rIdx] && scheduleData[rIdx][currentDayIdx]?.subject) || 'Study Quest';
+                        playChime();
+                        showToast("Hero Subject Alert! ⚡", `"${subj}" starts in 5 minutes (${slot.time}).`);
+                    }
+                }
+            });
+        }
+
+        function showToast(title, body) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastBody').innerText = body;
+            toast.classList.remove('hidden');
+            setTimeout(dismissToast, 10000);
+        }
+
+        function dismissToast() {
+            document.getElementById('toastNotification').classList.add('hidden');
+        }
+
+        function openInstallGuideModal() {
+            document.getElementById('installGuideModal').classList.remove('hidden');
+        }
+
+        function closeInstallGuideModal() {
+            document.getElementById('installGuideModal').classList.add('hidden');
+        }
+
+        async function toggleNotifications() {
+            if (!('Notification' in window)) return;
+            if (Notification.permission === 'granted') {
+                notificationsEnabled = !notificationsEnabled;
+            } else {
+                const res = await Notification.requestPermission();
+                notificationsEnabled = (res === 'granted');
+            }
+            localStorage.setItem('study_notifications_hero_v2', notificationsEnabled);
+            updateNotifyUI();
+        }
+
+        function updateNotifyUI() {
+            const btn = document.getElementById('notifyBtn');
+            const icon = document.getElementById('notifyIcon');
+            const text = document.getElementById('notifyBtnText');
+            if (notificationsEnabled && Notification.permission === 'granted') {
+                btn.className = 'bg-emerald-500/20 border border-emerald-400/40 px-4 py-3 rounded-xl text-xs font-bold text-emerald-300 transition shadow-3d-button flex items-center gap-2';
+                icon.className = 'fa-solid fa-bell text-emerald-400';
+                text.innerText = 'Reminders ON';
+            } else {
+                btn.className = 'bg-sky-500/20 border border-sky-400/40 px-4 py-3 rounded-xl text-xs font-bold text-sky-300 transition shadow-3d-button flex items-center gap-2';
+                icon.className = 'fa-solid fa-bell-slash text-sky-400';
+                text.innerText = 'Reminders';
+            }
+        }
+
+        function toggleAudioSetting() {
+            audioEnabled = !audioEnabled;
+            localStorage.setItem('study_audio_hero_v2', audioEnabled);
+            const icon = document.getElementById('soundIcon');
+            if (audioEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-sky-400';
+                playChime();
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-slate-400';
+            }
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('study_matrix_hero_v2', JSON.stringify(scheduleData));
+            localStorage.setItem('study_slots_hero_v2', JSON.stringify(timeSlots));
+            renderSchedule();
+        }
+
+        window.onload = () => {
+            renderSchedule();
+            renderProNotes();
+            renderTasks();
+            updateNotifyUI();
+            setInterval(checkReminders, 10000);
+        };
+    </script>
+</body>
+</html>
